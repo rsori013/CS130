@@ -1,0 +1,56 @@
+# <num-points> <max-error> <test>
+4 0.10 a/100.txt
+4 0.10 a/101.txt
+4 0.10 a/102.txt
+4 0.10 a/103.txt
+4 0.10 a/104.txt
+# <num-points> <max-error> <test>
+3 0.10 a/105.txt
+1 0.10 a/106.txt
+1 0.10 a/107.txt
+3 0.10 a/108.txt
+1 0.10 a/109.txt
+1 0.10 a/110.txt
+1 0.10 a/111.txt
+1 0.10 a/112.txt
+1 0.10 a/113.txt
+3 0.10 a/114.txt
+1 0.10 a/115.txt
+1 0.10 a/116.txt
+1 0.10 a/117.txt
+1 0.10 a/118.txt
+1 0.10 a/119.txt
+5 0.10 a/120.txt
+1 0.10 a/121.txt
+1 0.10 a/122.txt
+# <num-points> <max-error> <test>
+3 0.10 a/123.txt
+3 0.10 a/124.txt
+3 0.10 a/125.txt
+2 0.10 a/126.txt
+2 0.10 a/127.txt
+1 0.10 a/128.txt
+1 0.10 a/129.txt
+1 0.10 a/130.txt
+1 0.10 a/131.txt
+1 0.10 a/132.txt
+1 0.10 a/133.txt
+1 0.10 a/134.txt
+# <num-points> <max-error> <test>
+2 0.10 a/135.txt
+2 0.10 a/136.txt
+2 0.10 a/137.txt
+2 0.10 a/138.txt
+2 0.10 a/139.txt
+# <num-points> <max-error> <test>
+5 0.10 a/140.txt
+5 0.10 a/141.txt
+5 0.10 a/142.txt
+5 0.10 a/143.txt
+5 0.10 a/144.txt
+# <num-points> <max-error> <test>
+2 0.10 a/145.txt
+2 0.10 a/146.txt
+2 0.10 a/147.txt
+2 0.10 a/148.txt
+2 0.10 a/149.txt
