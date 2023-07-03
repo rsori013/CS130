@@ -3,7 +3,6 @@
 #include "object.h"
 #include "light.h"
 #include "ray.h"
-#include "misc.h" // added this 
 
 extern bool enable_acceleration;
 
@@ -26,10 +25,7 @@ std::pair<Shaded_Object,Hit> Render_World::Closest_Intersection(const Ray& ray) 
 // set up the initial view ray and call
 void Render_World::Render_Pixel(const ivec2& pixel_index)
 {
-    //TODO; // set up the initial view ray here
-     Debug_Scope scope;
-     Pixel_Print("Render Pixel: ", pixel_index[0], " ", pixel_index[1]);
-
+    TODO; // set up the initial view ray here
     Ray ray;
     vec3 color=Cast_Ray(ray,1);
     camera.Set_Pixel(pixel_index,Pixel_Color(color));
@@ -47,10 +43,6 @@ void Render_World::Render()
 vec3 Render_World::Cast_Ray(const Ray& ray,int recursion_depth) const
 {
     vec3 color;
-    //TODO; // determine the color here
-    Debug_Scope scope; // add a Debug_Scope
-    Pixel_Print("Cast Ray: ", ray, " recursion depth: ", recursion_depth); // add a Pixel_Print
-
-    
+    TODO; // determine the color here
     return color;
 }
