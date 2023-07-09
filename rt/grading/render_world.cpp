@@ -7,8 +7,28 @@
 
 extern bool enable_acceleration;
 
+// addded a SolidColor class definition
+class SolidColor : public Color {
+public:
+    vec3 color;
+
+    SolidColor(const vec3& color) : color(color) {}
+
+    virtual vec3 Get_Color(const vec2& uv) const override {
+        return color;
+    }
+};
+
+//added this because of the segfault we getting for 05.txt
+Render_World::Render_World() : ambient_color(new SolidColor({1.0f, 1.0f, 1.0f})), ambient_intensity(1.0) {}
+
+
+
 Render_World::~Render_World()
-{
+{   
+    //added this
+    delete this->ambient_color;
+
     for(auto a:all_objects) delete a;
     for(auto a:all_shaders) delete a;
     for(auto a:all_colors) delete a;

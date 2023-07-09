@@ -46,7 +46,7 @@ public:
 
 //     Acceleration acceleration;
 
-    Render_World() = default;
+    Render_World() ;
     ~Render_World();
 
     void Render_Pixel(const ivec2& pixel_index);
