@@ -18,3 +18,17 @@ Shade_Surface(const Render_World& render_world,const Ray& ray,const Hit& hit,
     TODO; // determine the color
     return {};
 }
+
+// vec3 Reflective_Shader::
+// Shade_Surface(const Render_World& render_world,const Ray& ray,const Hit& hit,
+//     const vec3& intersection_point,const vec3& normal,int recursion_depth) const
+// {
+//     vec3 color = shader->Shade_Surface(render_world, ray, hit, intersection_point, normal, recursion_depth);
+    
+//     if(recursion_depth >= render_world.recursion_depth_limit) return color;
+    
+//     vec3 reflected_direction = ray.direction - 2 * dot(ray.direction, normal) * normal;
+//     Ray reflected_ray(intersection_point, reflected_direction);
+    
+//     return color + reflectivity * render_world.Cast_Ray(reflected_ray, recursion_depth + 1);
+// }

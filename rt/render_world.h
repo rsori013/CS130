@@ -5,7 +5,8 @@
 #include <utility>
 #include "camera.h"
 #include "object.h"
-// #include "acceleration.h"
+// #include "acceleration.h"+
+#include <memory> // add this for unique_ptr and shared_ptr
 
 class Light;
 class Shader;
@@ -16,18 +17,19 @@ struct Shaded_Object
 {
     const Object* object = nullptr;
     const Shader* shader = nullptr;
+    //added this to check if valid
+    bool IsValid() const { return object != nullptr && shader != nullptr; }
 };
 
 class Render_World
 {
 public:
     Camera camera;
-
     // This is the background shader that you should use in case no other
     // objects are intersected.  If this pointer is null, then use black as the
     // color instead.
     const Shader* background_shader = nullptr;
-
+    //for color object
     // Use these to get access to objects and lights in the scene.
     std::vector<Shaded_Object> objects;
     std::vector<const Light*> lights;
@@ -38,6 +40,7 @@ public:
     std::vector<Shader*> all_shaders;
     std::vector<Color*> all_colors;
     
+    //const Color* ambient_color = nullptr;
     const Color* ambient_color = nullptr;
     double ambient_intensity = 0;
 
@@ -46,7 +49,7 @@ public:
 
 //     Acceleration acceleration;
 
-    Render_World() ;
+    Render_World() = default;
     ~Render_World();
 
     void Render_Pixel(const ivec2& pixel_index);

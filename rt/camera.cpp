@@ -48,15 +48,18 @@ void Camera::Set_Resolution(const ivec2& number_pixels_input)
 
 // added
 vec3 Camera::World_Position(const ivec2& pixel_index)
-{
+{   
+    vec3 result;
+    result += this->film_position;
+
     // Use the Cell_Center method to find the center of the cell in 2D space
     vec2 cell_center = Cell_Center(pixel_index);
     
     // Calculate the world position of the pixel by adding a weighted sum of the 
     // horizontal and vertical vectors to the film position
-    vec3 world_position = film_position + cell_center[0]*horizontal_vector + cell_center[1]*vertical_vector;
+     result = film_position + cell_center.x[0] * horizontal_vector + cell_center.x[1] * vertical_vector;
     
-    return world_position;
+    return result;
 }
 // This update is necessary because without it, the program wouldn't be able to determine where in 3D space 
 // each pixel corresponds to, which is critical for the ray tracing process.

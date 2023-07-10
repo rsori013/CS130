@@ -3,6 +3,7 @@
 #include <limits>
 #include <string>
 #include <algorithm>
+#include "vec.h"
 
 // Consider a triangle to intersect a ray if the ray intersects the plane of the
 // triangle with barycentric weights in [-weight_tolerance, 1+weight_tolerance]
@@ -59,20 +60,54 @@ void Mesh::Read_Obj(const char* file)
     num_parts=triangles.size();
 }
 
-// Check for an intersection against the ray.  See the base class for details.
+//Check for an intersection against the ray.  See the base class for details.
 Hit Mesh::Intersection(const Ray& ray, int part) const
 {
     TODO;
     return {};
 }
+//having lots of errors:
+// Hit Mesh::Intersection(const Ray& ray, int part) const
+// {
+//     if(part >= 0){
+//         return Intersect_Triangle(ray, part);
+//     }else{
+//         // Check all triangles
+//         double min_t = std::numeric_limits<double>::max();
+//         int min_i = -1;
+//         for(int i = 0; i < num_parts; i++){
+//             Hit hit = Intersect_Triangle(ray, i);
+//             if(hit.Valid() && hit.dist < min_t){ // Modify this line
+//                 min_t = hit.dist;
+//                 min_i = i;
+//             }
+//         }
+//         if(min_i != -1){
+//             return Intersect_Triangle(ray, min_i);
+//         }
+//     }
+//     return {std::numeric_limits<double>::quiet_NaN(), -1, vec2()}; // Return invalid hit
+// }
 
-// Compute the normal direction for the triangle with index part.
+
+//Compute the normal direction for the triangle with index part.
 vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
 {
     assert(hit.triangle>=0);
     TODO;
     return vec3();
 }
+//having lots of errors:
+// vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
+// {
+//     assert(hit.triangle>=0);
+//     ivec3 e = triangles[hit.triangle];
+//     vec3 edge1 = vertices[e[1]] - vertices[e[0]];
+//     vec3 edge2 = vertices[e[2]] - vertices[e[0]];
+//     vec3 normal = edge1.cross(edge2);
+//     return normal.normalized();
+// }
+
 
 // This is a helper routine whose purpose is to simplify the implementation
 // of the Intersection routine.  It should test for an intersection between
@@ -91,6 +126,47 @@ Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
     TODO;
     return {};
 }
+//having lots of errrors not sure what we are doing
+// Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
+// {
+//     const double SMALL_NUM = 0.00000001; // to prevent divide by zero
+//     vec3 edge1, edge2, h, s, q;
+//     double a,f,u,v;
+
+//     ivec3 e = triangles[tri];
+//     vec3 vertex0 = vertices[e[0]];
+//     vec3 vertex1 = vertices[e[1]];
+//     vec3 vertex2 = vertices[e[2]];
+
+//     edge1 = vertex1 - vertex0;
+//     edge2 = vertex2 - vertex0;
+//     h = ray.direction.cross(edge2);
+//     a = edge1.dot(h);
+
+//     if (a > -SMALL_NUM && a < SMALL_NUM)
+//         return {std::numeric_limits<double>::quiet_NaN(), -1, vec2()};    // This ray is parallel to this triangle.
+
+//     f = 1.0/a;
+//     s = ray.endpoint - vertex0;
+//     u = f * (s.dot(h));
+//     if (u < 0.0 || u > 1.0)
+//         return {std::numeric_limits<double>::quiet_NaN(), -1, vec2()};
+
+//     q = s.cross(edge1);
+//     v = f * ray.direction.dot(q);
+//     if (v < 0.0 || u + v > 1.0)
+//         return {std::numeric_limits<double>::quiet_NaN(), -1, vec2()};
+
+//     // At this stage we can compute t to find out where the intersection point is on the line.
+//     double t = f * edge2.dot(q);
+
+//     if (t > SMALL_NUM) // ray intersection
+//     {
+//         return {t, tri, vec2(u,v)}; // we've hit the triangle
+//     }
+//     else // This means that there is a line intersection but not a ray intersection.
+//         return {std::numeric_limits<double>::quiet_NaN(), -1, vec2()};
+// }
 
 std::pair<Box,bool> Mesh::Bounding_Box(int part) const
 {
