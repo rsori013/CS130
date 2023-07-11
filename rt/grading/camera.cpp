@@ -1,3 +1,4 @@
+//Tri Tran & Rovin Soriano
 #include "camera.h"
 
 Camera::Camera()
@@ -38,14 +39,6 @@ void Camera::Set_Resolution(const ivec2& number_pixels_input)
     pixel_size = image_size/vec2(number_pixels);
 }
 
-// Find the world position of the input pixel
-// vec3 Camera::World_Position(const ivec2& pixel_index)
-// {
-//     vec3 result;
-//     TODO;
-//     return result;
-// }
-
 // added
 vec3 Camera::World_Position(const ivec2& pixel_index)
 {   
@@ -61,5 +54,3 @@ vec3 Camera::World_Position(const ivec2& pixel_index)
     
     return result;
 }
-// This update is necessary because without it, the program wouldn't be able to determine where in 3D space 
-// each pixel corresponds to, which is critical for the ray tracing process.

@@ -1,62 +1,23 @@
+//Tri Tran & Rovin Soriano
 #include "render_world.h"
 #include "flat_shader.h"
 #include "object.h"
 #include "light.h"
 #include "ray.h"
 #include "misc.h" // added this 
-#include <memory> // add this for unique_ptr and shared_ptr
+
 extern bool enable_acceleration;
 
 
-
-
-// // addded a SolidColor class definition
-// class SolidColor : public Color {
-// public:
-//     vec3 color;
-
-//     SolidColor(const vec3& color) : color(color) {}
-
-//     virtual vec3 Get_Color(const vec2& uv) const override {
-//         return color;
-//     }
-// };
-
-// //added this because of the segfault we getting for 05.txt
-// Render_World::Render_World() : ambient_color(new SolidColor({1.0f, 1.0f, 1.0f})), ambient_intensity(1.0) {}
-
-
-//old one
-// Render_World::~Render_World()
-// {   
-//     //added this
-//     delete this->ambient_color;
-
-//     for(auto a:all_objects) delete a;
-//     for(auto a:all_shaders) delete a;
-//     for(auto a:all_colors) delete a;
-//     for(auto a:lights) delete a;
-// }
-
-
-// adding bc getting segfault for file 15
 Render_World::~Render_World() {
-    for(auto obj : all_objects)
-        delete obj;
-    for(auto sh : all_shaders)
-        delete sh;
-    for(auto col : all_colors)
-        delete col;
-    delete ambient_color;
-    for(auto light : lights)
-        delete light;
+    for(auto a:all_objects) delete a;
+    for(auto a:all_shaders) delete a;
+    for(auto a:all_colors) delete a;
+    for(auto a:lights) delete a;
 }
 
 
 
-
-
-//added
 std::pair<Shaded_Object,Hit> Render_World::Closest_Intersection(const Ray& ray) const
 {
     Shaded_Object closest_object;
@@ -74,7 +35,6 @@ std::pair<Shaded_Object,Hit> Render_World::Closest_Intersection(const Ray& ray) 
     
     return {closest_object, closest_hit};
 }
-
 
 // set up the initial view ray and call
 void Render_World::Render_Pixel(const ivec2& pixel_index)
@@ -105,17 +65,6 @@ void Render_World::Render()
 
 // cast ray and return the color of the closest intersected surface point,
 // or the background color if there is no object intersection
-// vec3 Render_World::Cast_Ray(const Ray& ray,int recursion_depth) const
-// {
-//     vec3 color;
-//     //TODO; // determine the color here
-//     Debug_Scope scope; // add a Debug_Scope
-//     Pixel_Print("Cast Ray: ", ray, " recursion depth: ", recursion_depth); // add a Pixel_Print
-
-    
-//     return color;
-// }
-//added
 vec3 Render_World::Cast_Ray(const Ray& ray, int recursion_depth) const
 {
     // Limit the recursion_depth to prevent infinite recursion

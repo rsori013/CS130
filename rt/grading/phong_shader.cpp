@@ -1,3 +1,4 @@
+//Tri Tran & Rovin Soriano
 #include "light.h"
 #include "parse.h"
 #include "object.h"
@@ -14,22 +15,11 @@ Phong_Shader::Phong_Shader(const Parse* parse,std::istream& in)
     in>>specular_power;
 }
 
-// vec3 Phong_Shader::
-// Shade_Surface(const Render_World& render_world,const Ray& ray,const Hit& hit,
-//     const vec3& intersection_point,const vec3& normal,int recursion_depth) const
-// {
-//     vec3 color;
-//     TODO; //determine the color
-//     return color;
-//}
-
 
 vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_ray, const Hit& hit, 
-                const vec3& intersection_point, const vec3& normal, int recursion_depth) const 
+        const vec3& intersection_point, const vec3& normal, int recursion_depth) const 
 {   
 
-
-    // Initialize auxiliary variables
     Ray ray_to_light;
     vec3 emitted_light_color;
     vec3 final_color;
