@@ -24,14 +24,17 @@ std::pair<Shaded_Object,Hit> Render_World::Closest_Intersection(const Ray& ray) 
     Hit closest_hit;
     double min_t = std::numeric_limits<double>::max();
     
-    for(const auto& shaded_object : objects) {
+   for(const auto& shaded_object : objects) {
+    if (shaded_object.object != nullptr) {
         Hit hit = shaded_object.object->Intersection(ray, small_t); // use Intersection method
         if(hit.dist < min_t && hit.dist >= small_t) {
             min_t = hit.dist;
             closest_hit = hit;
             closest_object = shaded_object;
         }
-    }
+    } 
+}
+
     
     return {closest_object, closest_hit};
 }

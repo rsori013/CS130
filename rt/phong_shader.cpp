@@ -52,13 +52,16 @@ vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_r
         emitted_light_color = world.lights[i]->Emitted_Light(ray_to_light.direction);
         emitted_light_color /= distance_to_light_squared;
         double diff_intensity = std::max(dot(ray_to_light.direction, normal) , 0.0);
-        final_color += (emitted_light_color * color_diffuse->Get_Color({}) * diff_intensity);
+         if (color_diffuse)
+            final_color += (emitted_light_color * color_diffuse->Get_Color({}) * diff_intensity);
 
         // Compute and add specular contribution to final color
         vec3 reflected_dir = (2 * dot(ray_to_light.direction, normal) * normal) - ray_to_light.direction;
         vec3 opposite_ray_dir = -incoming_ray.direction.normalized();
         double spec_intensity = std::pow(std::max(dot(reflected_dir, opposite_ray_dir), 0.0), specular_power);
-        final_color += (emitted_light_color * color_specular->Get_Color({}) * spec_intensity);
+        
+         if (color_specular)
+            final_color += (emitted_light_color * color_specular->Get_Color({}) * spec_intensity);
     }
 
     return final_color;
