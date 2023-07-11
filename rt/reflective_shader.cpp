@@ -19,6 +19,7 @@ Reflective_Shader::Reflective_Shader(const Parse* parse,std::istream& in)
 //     return {};
 // }
 
+//pass one test case with this one
 vec3 Reflective_Shader::
 Shade_Surface(const Render_World& render_world,const Ray& ray,const Hit& hit,
     const vec3& intersection_point,const vec3& normal,int recursion_depth) const
@@ -37,5 +38,6 @@ Shade_Surface(const Render_World& render_world,const Ray& ray,const Hit& hit,
 
     return adjusted_direct_color;
 }
+
 
 

@@ -15,7 +15,6 @@ Phong_Shader::Phong_Shader(const Parse* parse,std::istream& in)
     in>>specular_power;
 }
 
-
 vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_ray, const Hit& hit, 
         const vec3& intersection_point, const vec3& normal, int recursion_depth) const 
 {   
@@ -28,6 +27,9 @@ vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_r
     if(color_ambient && world.ambient_color) {
         // Compute ambient color contribution
         final_color = color_ambient->Get_Color({}) * (world.ambient_color->Get_Color({}) * world.ambient_intensity);
+    } else {
+        // Default color values can be set according to your needs
+        final_color = vec3(0,0,0);
     }
 
     // Loop through each light in the scene
@@ -54,6 +56,8 @@ vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_r
         double diff_intensity = std::max(dot(ray_to_light.direction, normal) , 0.0);
          if (color_diffuse)
             final_color += (emitted_light_color * color_diffuse->Get_Color({}) * diff_intensity);
+         else
+            final_color += (emitted_light_color * vec3(0,0,0) * diff_intensity);
 
         // Compute and add specular contribution to final color
         vec3 reflected_dir = (2 * dot(ray_to_light.direction, normal) * normal) - ray_to_light.direction;
@@ -62,6 +66,8 @@ vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_r
         
          if (color_specular)
             final_color += (emitted_light_color * color_specular->Get_Color({}) * spec_intensity);
+         else
+            final_color += (emitted_light_color * vec3(0,0,0) * spec_intensity);
     }
 
     return final_color;
