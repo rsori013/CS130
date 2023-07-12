@@ -41,35 +41,26 @@ Reflective_Shader::Reflective_Shader(const Parse* parse,std::istream& in)
 
 
 
-vec3 Reflective_Shader::
-Shade_Surface(const Render_World& render_world,const Ray& ray,const Hit& hit,
-    const vec3& intersection_point,const vec3& normal,int recursion_depth) const
-{
+vec3 Reflective_Shader::Shade_Surface(const Render_World& render_world, const Ray& ray, const Hit& hit, const vec3& intersection_point, const vec3& normal, int recursion_depth) const {
     if (shader == nullptr) {
-        // Handle the case where shader is null
-        // (for instance, return a default color)
         return {1, 0, 0};
     }
 
-    // Calculate the direct illumination color at the intersection point.
     vec3 direct_color = shader->Shade_Surface(render_world, ray, hit, intersection_point, normal, recursion_depth);
 
-    // Adjust the direct color by the reflectivity of the surface because the output we are getting is very bright.
     vec3 adjusted_direct_color = (1 - reflectivity) * direct_color;
 
     if (recursion_depth > 0) {
-        // Compute the reflection direction
         vec3 reflected_direction = ray.direction - 2 * dot(ray.direction, normal) * normal;
-
-        // Create the reflected ray
         Ray reflected_ray(intersection_point, reflected_direction);
-
-        // Cast the reflected ray into the scene
         vec3 reflected_color = render_world.Cast_Ray(reflected_ray, recursion_depth - 1);
 
-        // Add the reflected color to the final color, taking into account the reflectivity of the surface
+        // Debugging output
+       // std::cout << "Reflected Color: (" << reflected_color[0] << ", " << reflected_color[1] << ", " << reflected_color[2] << ")\n";
+        
         adjusted_direct_color += reflectivity * reflected_color;
     }
 
     return adjusted_direct_color;
 }
+
