@@ -62,19 +62,48 @@ void Mesh::Read_Obj(const char* file)
 }
 
 //Check for an intersection against the ray.  See the base class for details.
+// Hit Mesh::Intersection(const Ray& ray, int part) const
+// {
+//     TODO;
+//     return {};
+// }
 Hit Mesh::Intersection(const Ray& ray, int part) const
 {
-    TODO;
-    return {};
+    Hit min_hit;
+    min_hit.dist = std::numeric_limits<double>::max();
+    min_hit.triangle = -1;
+    for (size_t i = 0; i < triangles.size(); i++)
+    {
+        Hit hit = Intersect_Triangle(ray, i);
+        if (hit.dist > small_t && hit.dist < min_hit.dist)
+        {
+            min_hit = hit;
+            min_hit.triangle = i;
+        }
+    }
+    return min_hit;
 }
 
 
+
 //Compute the normal direction for the triangle with index part.
+// vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
+// {
+//     assert(hit.triangle>=0);
+//     TODO;
+//     return vec3();
+// }
 vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
 {
     assert(hit.triangle>=0);
-    TODO;
-    return vec3();
+    ivec3 triangle = triangles[hit.triangle];
+    vec3 A = vertices[triangle[0]];
+    vec3 B = vertices[triangle[1]];
+    vec3 C = vertices[triangle[2]];
+    vec3 edge1 = B - A;
+    vec3 edge2 = C - A;
+    vec3 normal = cross(edge1, edge2).normalized();
+    return normal;
 }
 
 
@@ -90,10 +119,70 @@ vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
 // larger than -weight_tolerance.  The use of small_t avoid the self-shadowing
 // bug, and the use of weight_tolerance prevents rays from passing in between
 // two triangles.
+// Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
+// {
+//     TODO;
+//     return {};
+// }
 Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
 {
-    TODO;
-    return {};
+    // Retrieve the triangle from the index.
+    ivec3 triangle = triangles[tri];
+
+    // Get the vertices of the triangle.
+    vec3 vertex0 = vertices[triangle[0]];
+    vec3 vertex1 = vertices[triangle[1]];
+    vec3 vertex2 = vertices[triangle[2]];
+
+    // Compute triangle edges.
+    vec3 edge1 = vertex1 - vertex0;
+    vec3 edge2 = vertex2 - vertex0;
+
+    // Compute determinants.
+    vec3 h = cross(ray.direction, edge2);
+    double a = dot(edge1, h);
+
+    if (a > -weight_tolerance && a < weight_tolerance) 
+    {
+        // Ray is parallel to the triangle.
+        return Hit();
+    }
+
+    double f = 1.0 / a;
+    vec3 s = ray.endpoint - vertex0;
+    double u = f * dot(s, h);
+
+    if (u < 0.0 || u > 1.0)
+    {
+        // Intersection is outside of the triangle.
+        return Hit();
+    }
+
+    vec3 q = cross(s, edge1);
+    double v = f * dot(ray.direction, q);
+
+    if (v < 0.0 || u + v > 1.0)
+    {
+        // Intersection is outside of the triangle.
+        return Hit();
+    }
+
+    // Compute the distance from the ray origin to the intersection point.
+    double t = f * dot(edge2, q);
+
+    if (t > small_t) // Ray intersection.
+    {
+        // Initialize the Hit object.
+        Hit hit;
+        hit.dist = t;
+        hit.triangle = tri;
+        hit.uv = vec2(u, v);
+        return hit;
+    }
+    else // No intersection.
+    {
+        return Hit();
+    }
 }
 
 
