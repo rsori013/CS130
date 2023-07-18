@@ -41,8 +41,23 @@ Texture::~Texture()
 //    of course you are welcome to do so if you like.  You may assume nearest
 //    neighbor interpolation.
 
-vec3 Texture::Get_Color(const vec2& uv) const
-{
-    TODO;
-    return {0,0,0};
+// vec3 Texture::Get_Color(const vec2& uv) const
+// {
+//     TODO;
+//     return {0,0,0};
+// }
+
+
+
+vec3 Texture::Get_Color(const vec2& uv) const {
+    // Compute pixel coordinates, ensuring that we're wrapping around if u/v are outside [0,1].
+    int u = wrap(static_cast<int>(floor(uv[0] * width)), width);
+    int v = wrap(static_cast<int>(floor(uv[1] * height)), height);
+    
+    // Get the color from the pixel at the computed coordinates.
+    // Assuming data is in row-major order, i.e., rows are contiguous in memory.
+    Pixel pixelColor = data[v * width + u];
+    
+    // Convert Pixel color to vec3 color and return
+    return From_Pixel(pixelColor);
 }

@@ -41,8 +41,29 @@ Texture::~Texture()
 //    of course you are welcome to do so if you like.  You may assume nearest
 //    neighbor interpolation.
 
+// vec3 Texture::Get_Color(const vec2& uv) const
+// {
+//     TODO;
+//     return {0,0,0};
+// }
 vec3 Texture::Get_Color(const vec2& uv) const
 {
-    TODO;
-    return {0,0,0};
+    // Map uv coordinates to the texture pixel indices
+    double u = uv[0] - std::floor(uv[0]);  // wrap u to the range [0, 1)
+    double v = uv[1] - std::floor(uv[1]);  // wrap v to the range [0, 1)
+
+    int i = static_cast<int>(std::round(u * (width - 1)));
+    int j = static_cast<int>(std::round(v * (height - 1)));
+
+    // Fetch pixel color
+    Pixel pixel = data[i + j * width];
+
+    // Unpack the pixel color
+    // The color stored in Pixel is in the format 0xRRGGBBFF
+    vec3 color(((pixel >> 24) & 0xFF) / 255.0,  // Red
+                ((pixel >> 16) & 0xFF) / 255.0,  // Green
+                ((pixel >> 8) & 0xFF) / 255.0);  // Blue
+
+    return color;
 }
+
