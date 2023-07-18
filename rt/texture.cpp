@@ -1,6 +1,7 @@
 #include "parse.h"
 #include "texture.h"
 #include "dump_png.h"
+#include <algorithm>
 
 Texture::Texture(const Parse* parse,std::istream& in)
 {
@@ -41,8 +42,35 @@ Texture::~Texture()
 //    of course you are welcome to do so if you like.  You may assume nearest
 //    neighbor interpolation.
 
+// vec3 Texture::Get_Color(const vec2& uv) const
+// {
+//     TODO;
+//     return {0,0,0};
+// }
 vec3 Texture::Get_Color(const vec2& uv) const
 {
-    TODO;
-    return {0,0,0};
+    // Wrap the uv coordinates
+    float u = uv[0] - std::floor(uv[0]);
+    float v = uv[1] - std::floor(uv[1]);
+
+    // Handle negative u or v values
+    if(u < 0) u += 1.0;
+    if(v < 0) v += 1.0;
+
+    // Convert u and v coordinates to pixel coordinates
+    int i = static_cast<int>(u * width);
+    int j = static_cast<int>(v * height);
+
+    // Ensure the coordinates are not out of range
+    i = std::min(i, width - 1);
+    j = std::min(j, height - 1);
+
+    // Get the pixel color
+    Pixel pixel = data[j * width + i];
+
+    // Convert pixel color to vec3 and return
+    return From_Pixel(pixel);
 }
+
+
+
