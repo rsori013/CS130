@@ -3,12 +3,31 @@
 #include "dump_png.h"
 #include <algorithm>
 
-Texture::Texture(const Parse* parse,std::istream& in)
+Texture::Texture(const Parse* parse, std::istream& in)
 {
     std::string filename;
-    in>>name>>filename>>use_bilinear_interpolation;
-    Read_png(data,width,height,filename.c_str());
+    in >> name >> filename >> use_bilinear_interpolation;
+    
+    Read_png(data, width, height, filename.c_str());
+
+    // Debugging code starts here
+    std::cout << "Reading file: " << filename << std::endl;
+    if(!data)
+    {
+        std::cerr << "Failed to load image data." << std::endl;
+    }
+    else
+    {
+        std::cout << "Image dimensions: " << width << "x" << height << std::endl;
+        std::cout << "First few pixel values after reading PNG:" << std::endl;
+        for(int k = 0; k < 5 && k < width * height; k++)
+        {
+            std::cout << From_Pixel(data[k]) << std::endl;
+        }
+    }
+    // Debugging code ends here
 }
+
 
 Texture::~Texture()
 {
@@ -47,30 +66,37 @@ Texture::~Texture()
 //     TODO;
 //     return {0,0,0};
 // }
-vec3 Texture::Get_Color(const vec2& uv) const
-{
-    // Wrap the uv coordinates
-    float u = uv[0] - std::floor(uv[0]);
-    float v = uv[1] - std::floor(uv[1]);
 
-    // Handle negative u or v values
-    if(u < 0) u += 1.0;
-    if(v < 0) v += 1.0;
+vec3 Texture::Get_Color(const vec2& uv) const {
+    float u = uv[0];
+    float v = uv[1];
 
-    // Convert u and v coordinates to pixel coordinates
+    if (!data) {
+        // If there's no PNG data, return a default color (white)
+        return vec3(1, 1, 1);
+    }
+
+    // Convert UV coordinates to pixel indices
     int i = static_cast<int>(u * width);
-    int j = static_cast<int>(v * height);
+    int j = static_cast<int>((1.0f - v) * height - 1); // -1 to account for array indexing starting at 0
 
-    // Ensure the coordinates are not out of range
-    i = std::min(i, width - 1);
-    j = std::min(j, height - 1);
+    std::cout << "Pre-wrap pixel indices: i=" << i << ", j=" << j << std::endl;
 
-    // Get the pixel color
+    // Wrap the coordinates if they're out of bounds
+    i = wrap(i, width);
+    j = wrap(j, height);
+
+    std::cout << "Post-wrap pixel indices: i=" << i << ", j=" << j << std::endl;
+
+    // Retrieve the pixel data
     Pixel pixel = data[j * width + i];
 
-    // Convert pixel color to vec3 and return
-    return From_Pixel(pixel);
+    std::cout << "Raw pixel data: " << pixel << std::endl;
+
+    // Convert the pixel to vec3 color using the provided function
+    vec3 color = From_Pixel(pixel);
+
+    std::cout << "Converted color: (" << color[0] << ", " << color[1] << ", " << color[2] << ")" << std::endl;
+
+    return color;
 }
-
-
-

@@ -48,19 +48,28 @@ Texture::~Texture()
 //     return {0,0,0};
 // }
 
+
 vec3 Texture::Get_Color(const vec2& uv) const
 {
-    // Wrap u and v coordinates around the texture width and height
-    int i = wrap((int)(uv[0]*width), width);
-    int j = wrap((int)(uv[1]*height), height);
+    // Check if data is loaded properly.
+    if(!data || width == 0 || height == 0)
+    {
+        std::cerr << "Texture data not loaded properly!" << std::endl;
+        return vec3(1, 1, 1); // Return white if there's an issue.
+    }
 
-    // Make sure we don't index out of bounds
-    i = std::min(i, width-1);
-    j = std::min(j, height-1);
+    // Convert uv values to pixel values before wrapping.
+    int i_pre_wrap = static_cast<int>(uv[0] * width);
+    int j_pre_wrap = static_cast<int>(uv[1] * height);
 
-    // Get the pixel color
+    // Wrap the texture coordinates to ensure they're within bounds.
+    int i = wrap(i_pre_wrap, width);
+    int j = wrap(j_pre_wrap, height);
+
+    // Fetch the pixel from the data.
     Pixel pixel = data[j * width + i];
 
-    // Convert pixel color to vec3 and return
+    // Convert the Pixel to vec3 and return.
     return From_Pixel(pixel);
 }
+
