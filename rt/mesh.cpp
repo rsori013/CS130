@@ -13,16 +13,14 @@ static const double weight_tolerance = 1e-4;
 Mesh::Mesh(const Parse* parse, std::istream& in)
 {
     std::string file;
-    in>>name>>file;
+    in >> name >> file;
     Read_Obj(file.c_str());
 }
 
-// Read in a mesh from an obj file.  Populates the bounding box and registers
-// one part per triangle (by setting number_parts).
 void Mesh::Read_Obj(const char* file)
 {
     std::ifstream fin(file);
-    if(!fin)
+    if (!fin)
     {
         exit(EXIT_FAILURE);
     }
@@ -30,48 +28,44 @@ void Mesh::Read_Obj(const char* file)
     ivec3 e, t;
     vec3 v;
     vec2 u;
-    while(fin)
-    {
-        getline(fin,line);
 
-        if(sscanf(line.c_str(), "v %lg %lg %lg", &v[0], &v[1], &v[2]) == 3)
+    while (fin)
+    {
+        getline(fin, line);
+
+        if (sscanf(line.c_str(), "v %lg %lg %lg", &v[0], &v[1], &v[2]) == 3)
         {
             vertices.push_back(v);
         }
 
-        if(sscanf(line.c_str(), "f %d %d %d", &e[0], &e[1], &e[2]) == 3)
+        else if (sscanf(line.c_str(), "f %d %d %d", &e[0], &e[1], &e[2]) == 3)
         {
-            for(int i=0;i<3;i++) e[i]--;
+            for (int i = 0; i < 3; i++) e[i]--;
             triangles.push_back(e);
         }
 
-        if(sscanf(line.c_str(), "vt %lg %lg", &u[0], &u[1]) == 2)
+        else if (sscanf(line.c_str(), "vt %lg %lg", &u[0], &u[1]) == 2)
         {
             uvs.push_back(u);
         }
 
-        if(sscanf(line.c_str(), "f %d/%d %d/%d %d/%d", &e[0], &t[0], &e[1], &t[1], &e[2], &t[2]) == 6)
+        else if (sscanf(line.c_str(), "f %d/%d %d/%d %d/%d", &e[0], &t[0], &e[1], &t[1], &e[2], &t[2]) == 6)
         {
-            for(int i=0;i<3;i++) e[i]--;
+            for (int i = 0; i < 3; i++) e[i]--;
             triangles.push_back(e);
-            for(int i=0;i<3;i++) t[i]--;
+            for (int i = 0; i < 3; i++) t[i]--;
             triangle_texture_index.push_back(t);
         }
     }
-    num_parts=triangles.size();
+    num_parts = triangles.size();
 }
 
-//Check for an intersection against the ray.  See the base class for details.
-// Hit Mesh::Intersection(const Ray& ray, int part) const
-// {
-//     TODO;
-//     return {};
-// }
 Hit Mesh::Intersection(const Ray& ray, int part) const
 {
     Hit min_hit;
     min_hit.dist = std::numeric_limits<double>::max();
     min_hit.triangle = -1;
+
     for (size_t i = 0; i < triangles.size(); i++)
     {
         Hit hit = Intersect_Triangle(ray, i);
@@ -84,18 +78,9 @@ Hit Mesh::Intersection(const Ray& ray, int part) const
     return min_hit;
 }
 
-
-
-//Compute the normal direction for the triangle with index part.
-// vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
-// {
-//     assert(hit.triangle>=0);
-//     TODO;
-//     return vec3();
-// }
 vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
 {
-    assert(hit.triangle>=0);
+    assert(hit.triangle >= 0);
     ivec3 triangle = triangles[hit.triangle];
     vec3 A = vertices[triangle[0]];
     vec3 B = vertices[triangle[1]];
@@ -105,7 +90,6 @@ vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
     vec3 normal = cross(edge1, edge2).normalized();
     return normal;
 }
-
 
 // This is a helper routine whose purpose is to simplify the implementation
 // of the Intersection routine.  It should test for an intersection between

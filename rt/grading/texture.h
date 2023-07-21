@@ -8,17 +8,21 @@
 class Texture : public Color
 {
     Pixel* data; // Texture data; row-major order
-    int width,height;
+    int width, height;
     bool use_bilinear_interpolation;
+
 public:
-    Texture(const Parse* parse,std::istream& in);
+    Texture(const Parse* parse, std::istream& in);
     virtual ~Texture();
 
     virtual vec3 Get_Color(const vec2& uv) const;
-    static vec3 mix(const vec3& a, const vec3& b, double factor);
-
+    int get_width() const { return width; }
+    int get_height() const { return height; }
+     Pixel get_pixel(int i, int j) const {
+        // Assuming data is a 1D array in row-major order
+        return data[j * width + i];
+    }
     static constexpr const char* parse_name = "texture";
 };
-
 
 #endif

@@ -57,13 +57,14 @@ void foo(const vec3& pt, const Ray& ray)
 */
 
 
-
 inline int wrap(int i,int n)
 {
     int k=i%n;
     if(k<0) k+=n;
     return k;
 }
+
+
 
 #endif
 
