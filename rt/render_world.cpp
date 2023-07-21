@@ -25,7 +25,7 @@ std::pair<Shaded_Object,Hit> Render_World::Closest_Intersection(const Ray& ray) 
     double min_t = std::numeric_limits<double>::max();
     
    for(const auto& shaded_object : objects) {
-    if (shaded_object.object != nullptr) {
+   if (shaded_object.IsValid()) {
         Hit hit = shaded_object.object->Intersection(ray, small_t); // use Intersection method
         if(hit.dist < min_t && hit.dist >= small_t) {
             min_t = hit.dist;

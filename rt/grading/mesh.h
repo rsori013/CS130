@@ -2,8 +2,10 @@
 #define __MESH_H__
 
 #include "object.h"
+#include <vector>
+#include "vec.h"  // Assuming you're using this for vec3, ivec3, and vec2 types
 
-// Consider a hit to be inside a triange if all barycentric weights
+// Consider a hit to be inside a triangle if all barycentric weights
 // satisfy weight>=-weight_tol
 static const double weight_tol = 1e-4;
 
@@ -16,9 +18,8 @@ class Mesh : public Object
     std::vector<vec2> uvs; // indexed texture coordinates
     std::vector<ivec3> triangle_texture_index; // triangle index -> texture coordinate indices
 
-
 public:
-    Mesh(const Parse* parse,std::istream& in);
+    Mesh(const Parse* parse, std::istream& in);
     virtual ~Mesh() = default;
 
     virtual Hit Intersection(const Ray& ray, int part) const override;
@@ -31,4 +32,5 @@ private:
     Hit Intersect_Triangle(const Ray& ray, int tri) const;
     void Read_Obj(const char* file);
 };
-#endif
+
+#endif // __MESH_H__

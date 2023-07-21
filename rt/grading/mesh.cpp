@@ -6,8 +6,6 @@
 #include <algorithm>
 #include "vec.h"
 
-// Consider a triangle to intersect a ray if the ray intersects the plane of the
-// triangle with barycentric weights in [-weight_tolerance, 1+weight_tolerance]
 static const double weight_tolerance = 1e-4;
 
 Mesh::Mesh(const Parse* parse, std::istream& in)
@@ -24,6 +22,7 @@ void Mesh::Read_Obj(const char* file)
     {
         exit(EXIT_FAILURE);
     }
+
     std::string line;
     ivec3 e, t;
     vec3 v;
@@ -38,12 +37,6 @@ void Mesh::Read_Obj(const char* file)
             vertices.push_back(v);
         }
 
-        else if (sscanf(line.c_str(), "f %d %d %d", &e[0], &e[1], &e[2]) == 3)
-        {
-            for (int i = 0; i < 3; i++) e[i]--;
-            triangles.push_back(e);
-        }
-
         else if (sscanf(line.c_str(), "vt %lg %lg", &u[0], &u[1]) == 2)
         {
             uvs.push_back(u);
@@ -55,6 +48,14 @@ void Mesh::Read_Obj(const char* file)
             triangles.push_back(e);
             for (int i = 0; i < 3; i++) t[i]--;
             triangle_texture_index.push_back(t);
+        }
+
+        else if (sscanf(line.c_str(), "f %d %d %d", &e[0], &e[1], &e[2]) == 3)
+        {
+            for (int i = 0; i < 3; i++) e[i]--;
+            triangles.push_back(e);
+            // Default UVs for triangles without UVs
+            triangle_texture_index.push_back(ivec3(-1, -1, -1));
         }
     }
     num_parts = triangles.size();
@@ -75,6 +76,7 @@ Hit Mesh::Intersection(const Ray& ray, int part) const
             min_hit.triangle = i;
         }
     }
+
     return min_hit;
 }
 
@@ -91,83 +93,61 @@ vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
     return normal;
 }
 
-// This is a helper routine whose purpose is to simplify the implementation
-// of the Intersection routine.  It should test for an intersection between
-// the ray and the triangle with index tri.  If an intersection exists,
-// record the distance and return true.  Otherwise, return false.
-// This intersection should be computed by determining the intersection of
-// the ray and the plane of the triangle.  From this, determine (1) where
-// along the ray the intersection point occurs (dist) and (2) the barycentric
-// coordinates within the triangle where the intersection occurs.  The
-// triangle intersects the ray if dist>small_t and the barycentric weights are
-// larger than -weight_tolerance.  The use of small_t avoid the self-shadowing
-// bug, and the use of weight_tolerance prevents rays from passing in between
-// two triangles.
-// Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
-// {
-//     TODO;
-//     return {};
-// }
 Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
 {
-    // Retrieve the triangle from the index.
-    ivec3 triangle = triangles[tri];
+    Hit hit;
+    hit.dist = -1;  // Default to no hit
 
-    // Get the vertices of the triangle.
-    vec3 vertex0 = vertices[triangle[0]];
-    vec3 vertex1 = vertices[triangle[1]];
-    vec3 vertex2 = vertices[triangle[2]];
+    ivec3 triangleIndices = triangles[tri];
+    vec3 vertexA = vertices[triangleIndices[0]];
+    vec3 vertexB = vertices[triangleIndices[1]];
+    vec3 vertexC = vertices[triangleIndices[2]];
 
-    // Compute triangle edges.
-    vec3 edge1 = vertex1 - vertex0;
-    vec3 edge2 = vertex2 - vertex0;
-
-    // Compute determinants.
+    vec3 edge1 = vertexB - vertexA;
+    vec3 edge2 = vertexC - vertexA;
     vec3 h = cross(ray.direction, edge2);
     double a = dot(edge1, h);
 
-    if (a > -weight_tolerance && a < weight_tolerance) 
-    {
-        // Ray is parallel to the triangle.
-        return Hit();
-    }
+    if (a > -weight_tolerance && a < weight_tolerance)
+        return hit;  // Ray is parallel to the triangle.
 
-    double f = 1.0 / a;
-    vec3 s = ray.endpoint - vertex0;
+    double f = 1.0/a;
+    vec3 s = ray.endpoint - vertexA;  // FIXED: ray.origin replaced by ray.endpoint
     double u = f * dot(s, h);
 
     if (u < 0.0 || u > 1.0)
-    {
-        // Intersection is outside of the triangle.
-        return Hit();
-    }
+        return hit;
 
     vec3 q = cross(s, edge1);
     double v = f * dot(ray.direction, q);
 
     if (v < 0.0 || u + v > 1.0)
-    {
-        // Intersection is outside of the triangle.
-        return Hit();
-    }
+        return hit;
 
-    // Compute the distance from the ray origin to the intersection point.
+    // Compute intersection distance t
     double t = f * dot(edge2, q);
 
-    if (t > small_t) // Ray intersection.
+    if (t > weight_tolerance) // We've got a hit
     {
-        // Initialize the Hit object.
-        Hit hit;
         hit.dist = t;
-        hit.triangle = tri;
-        hit.uv = vec2(u, v);
-        return hit;
+        hit.uv = vec2(u, v);  // Barycentric coordinates
+
+        if (triangle_texture_index.size() > static_cast<size_t>(tri)) 
+        {
+            ivec3 uvIndices = triangle_texture_index[tri];
+            vec2 uvA = (uvIndices[0] != -1) ? uvs[uvIndices[0]] : vec2();
+            vec2 uvB = (uvIndices[1] != -1) ? uvs[uvIndices[1]] : vec2();
+            vec2 uvC = (uvIndices[2] != -1) ? uvs[uvIndices[2]] : vec2();
+
+            hit.uv = uvA * (1.0 - u - v) + uvB * u + uvC * v;  // Interpolate UV based on barycentric coords
+        }
     }
-    else // No intersection.
-    {
-        return Hit();
-    }
+
+    return hit;
 }
+
+
+
 
 
 std::pair<Box,bool> Mesh::Bounding_Box(int part) const

@@ -5,47 +5,61 @@
 #include "phong_shader.h"
 #include "ray.h"
 #include "render_world.h"
+#include "texture.h"  //added for texture.cpp
+#include <iostream>
 
-Phong_Shader::Phong_Shader(const Parse* parse,std::istream& in)
+Phong_Shader::Phong_Shader(const Parse* parse, std::istream& in)
 {
-    in>>name;
-    color_ambient=parse->Get_Color(in);
-    color_diffuse=parse->Get_Color(in);
-    color_specular=parse->Get_Color(in);
-    in>>specular_power;
+    in >> name;
+    color_ambient = parse->Get_Color(in);
+    color_diffuse = parse->Get_Color(in);
+    color_specular = parse->Get_Color(in);
+    in >> specular_power;
+
+    // Attempt to read in an optional texture name
+    // std::string texture_name;
+    // if(in >> texture_name)
+    // {
+    //     texture = parse->Get_Texture(texture_name);  // Assuming you have a method like this
+    // }
 }
 
-vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_ray, const Hit& hit, 
+vec3 Phong_Shader::Shade_Surface(const Render_World& world, const Ray& incoming_ray, const Hit& hit, 
         const vec3& intersection_point, const vec3& normal, int recursion_depth) const 
 {   
-
     Ray ray_to_light;
     vec3 emitted_light_color;
     vec3 final_color;
 
     // Check if color_ambient and world.ambient_color are not null
-    if(color_ambient && world.ambient_color) {
+    if(color_ambient != nullptr && world.ambient_color != nullptr) 
+    {
         // Compute ambient color contribution
         final_color = color_ambient->Get_Color({}) * (world.ambient_color->Get_Color({}) * world.ambient_intensity);
-    } else {
+    } 
+    else 
+    {
         // Default color values can be set according to your needs
         final_color = vec3(0,0,0);
     }
 
     // Loop through each light in the scene
-    for(size_t i = 0; i < world.lights.size(); ++i) {
+    for(size_t i = 0; i < world.lights.size(); ++i) 
+    {
         vec3 light_position = world.lights[i]->position;
         ray_to_light.direction = light_position - intersection_point;
         double distance_to_light_squared = ray_to_light.direction.magnitude_squared();
         ray_to_light.direction = ray_to_light.direction.normalized();
         ray_to_light.endpoint = light_position;
 
-        if(world.enable_shadows) {
+        if(world.enable_shadows) 
+        {
             Ray intersection_to_light(intersection_point, ray_to_light.direction);
             auto closest_obj_hit = world.Closest_Intersection(intersection_to_light);
 
             // If there's an object obstructing the light
-            if(closest_obj_hit.first.IsValid() && closest_obj_hit.second.dist * closest_obj_hit.second.dist < distance_to_light_squared){
+            if(closest_obj_hit.first.IsValid() && closest_obj_hit.second.dist * closest_obj_hit.second.dist < distance_to_light_squared)
+            {
                 continue; // Skip adding diffuse and specular contributions for this light
             }
         }
@@ -54,9 +68,10 @@ vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_r
         emitted_light_color = world.lights[i]->Emitted_Light(ray_to_light.direction);
         emitted_light_color /= distance_to_light_squared;
         double diff_intensity = std::max(dot(ray_to_light.direction, normal) , 0.0);
-         if (color_diffuse)
+
+        if (color_diffuse)
             final_color += (emitted_light_color * color_diffuse->Get_Color({}) * diff_intensity);
-         else
+        else
             final_color += (emitted_light_color * vec3(0,0,0) * diff_intensity);
 
         // Compute and add specular contribution to final color
@@ -64,10 +79,17 @@ vec3 Phong_Shader::Shade_Surface(const Render_World& world,const Ray& incoming_r
         vec3 opposite_ray_dir = -incoming_ray.direction.normalized();
         double spec_intensity = std::pow(std::max(dot(reflected_dir, opposite_ray_dir), 0.0), specular_power);
         
-         if (color_specular)
+        if (color_specular)
             final_color += (emitted_light_color * color_specular->Get_Color({}) * spec_intensity);
-         else
+        else
             final_color += (emitted_light_color * vec3(0,0,0) * spec_intensity);
+    }
+
+    // Add texture handling here
+    if(texture)
+    {
+        std::cout << "Texture exists for object: " << name << std::endl;
+        final_color = texture->Get_Color(hit.uv);
     }
 
     return final_color;

@@ -2,6 +2,7 @@
 #define __PHONG_SHADER_H__
 
 #include "shader.h"
+#include "texture.h"
 
 class Phong_Shader : public Shader
 {
@@ -10,6 +11,8 @@ public:
     const Color* color_diffuse = nullptr;
     const Color* color_specular = nullptr;
     double specular_power = 0;
+
+    Texture* texture = nullptr;  // added for texture.cpp
 
     Phong_Shader(const Parse* parse,std::istream& in);
     virtual ~Phong_Shader() = default;
