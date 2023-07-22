@@ -83,4 +83,6 @@ vec3 Texture::Get_Color(const vec2& uv) const
     vec3 color = From_Pixel(get_pixel(x, y));
 
     return color;
+
+//    return vec3(1.0, 0.0, 0.0);
 }
