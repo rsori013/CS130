@@ -72,8 +72,12 @@ vec3 Texture::Get_Color(const vec2& uv) const
     }
 
     // Convert UV to pixel coordinates, ensuring we don't exceed image bounds.
-    int x = static_cast<int>(uv[0] * width) % width;
-    int y = static_cast<int>(uv[1] * height) % height;
+   int x = static_cast<int>(uv[0] * width) % width;
+   if(x < 0) x += width;
+
+   int y = static_cast<int>(uv[1] * height) % height;
+   if(y < 0) y += height;
+
 
     // Fetch the pixel color from the texture
     vec3 color = From_Pixel(get_pixel(x, y));
