@@ -6,7 +6,7 @@
 #include "common.h"
 namespace fs = std::filesystem;
 
-int max_triangles=4;
+int max_triangles=20;
 int max_cases=10;
 int width=640;
 int height=480;
