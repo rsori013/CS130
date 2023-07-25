@@ -15,8 +15,6 @@ public:
     virtual ~Texture();
 
     virtual vec3 Get_Color(const vec2& uv) const;
-    static vec3 mix(const vec3& a, const vec3& b, double factor);
-  
 
     static constexpr const char* parse_name = "texture";
 };
