@@ -1,7 +1,6 @@
 #include "parse.h"
 #include "texture.h"
 #include "dump_png.h"
-#include <cmath>  // for the floor function
 
 Texture::Texture(const Parse* parse,std::istream& in)
 {
@@ -15,46 +14,49 @@ Texture::~Texture()
     delete [] data;
 }
 
+// uses nearest neighbor interpolation to determine color at texture coordinates
+// (uv[0],uv[1]).  To match the reference image, details on how this mapping is
+// done will matter.
+
+// 1. Assume that width=5 and height=4.  Texture coordinates with 0<=u<0.2 and
+//    0<=v<0.25 should map to pixel index i=0, j=0.  Texture coordinates with
+//    0.8<=u<1 and 0.75<=v<1 should map to pixel index i=4, j=3.
+
+// 2. Texture coordinates should "wrap around."  Some of the objects contain
+//    (u,v) coordinates that are less than 0 or greater than 1.  u=0.4 and u=1.4
+//    and u=-0.6 should be considered equivalent.  There is a wrap function in
+//    misc.h that you may use.
+
+// 3. Be very careful about indexing out of bounds.  For example, u=0.999999
+//    should result in i=width-1, not i=width.  The latter is out of bounds.
+
+// 4. Be careful with your rounding.  For example, u=-0.0001 should map to
+//    i=width-1 in accordance to the wrapping rule.  Remember that casting from
+//    float to integer rounds towards zero, so that (int)u would produce 0.  You
+//    may find the cmath functions floor, ceil, and rint to be helpful, as they
+//    provide precise control over rounding.
+
+// 5. Although there is a flag called use_bilinear_interpolation, none of the
+//    test cases exercise this feature.  You do not need to implement it, though
+//    of course you are welcome to do so if you like.  You may assume nearest
+//    neighbor interpolation.
+
 vec3 Texture::Get_Color(const vec2& uv) const
-{
-    // Convert uv coordinates into pixel coordinates.
-    float u = uv[0] * width;
-    float v = uv[1] * height;
+{   
+    //pixel color in misc.h
+    //std::vector<ivec3> triangle_texture_index; in mesh.h - triangle index -> texture coordinate indices
+    //std::vector<vec2> uvs; in mesh.h - indexed texture coordinates
+    int i,j;  // (i,j) 
+    vec3 color;
+    //wrap(uv[0],width);
+    //wrap(uv[1],height);
 
-    // In case uv is outside [0, 1], wrap them around.
-    u = u - std::floor(u);
-    v = v - std::floor(v);
-
-    int x = static_cast<int>(u);
-    int y = static_cast<int>(v);
-
-    if (!use_bilinear_interpolation)
-    {
-        // Nearest neighbor sampling
-        Pixel pixel = data[y * width + x];
-        return From_Pixel(pixel); // Use the utility function to convert the Pixel to vec3
-    }
-    else
-    {
-        // Bilinear interpolation
-        int x1 = (x + 1) % width;
-        int y1 = (y + 1) % height;
-
-        float u_ratio = u - x;
-        float v_ratio = v - y;
-        float u_opposite = 1 - u_ratio;
-        float v_opposite = 1 - v_ratio;
-
-        vec3 color1 = From_Pixel(data[y * width + x]);
-        vec3 color2 = From_Pixel(data[y * width + x1]);
-        vec3 color3 = From_Pixel(data[y1 * width + x]);
-        vec3 color4 = From_Pixel(data[y1 * width + x1]);
-
-        vec3 col_u1 = color1 * u_opposite + color2 * u_ratio;
-        vec3 col_u2 = color3 * u_opposite + color4 * u_ratio;
-
-        vec3 final_color = col_u1 * v_opposite + col_u2 * v_ratio;
-
-        return final_color;
-    }
+    //convert to pixel coordinates
+    i = wrap(uv[0] * width, width);
+    j = wrap(uv[1] * height, height);
+    
+    //pixel coordinate = (i,j);
+    Pixel pix = data[width * j + i];
+    color = From_Pixel(pix);
+    return color;
 }
