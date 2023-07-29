@@ -43,20 +43,16 @@ Texture::~Texture()
 
 vec3 Texture::Get_Color(const vec2& uv) const
 {   
-    //pixel color in misc.h
-    //std::vector<ivec3> triangle_texture_index; in mesh.h - triangle index -> texture coordinate indices
-    //std::vector<vec2> uvs; in mesh.h - indexed texture coordinates
     int i,j;  // (i,j) 
     vec3 color;
-    //wrap(uv[0],width);
-    //wrap(uv[1],height);
-
+    
     //convert to pixel coordinates
     i = wrap(uv[0] * width, width);
     j = wrap(uv[1] * height, height);
     
     //pixel coordinate = (i,j);
-    Pixel pix = data[width * j + i];
-    color = From_Pixel(pix);
+    Pixel pixel = data[width * j + i];
+    color = From_Pixel(pixel);
+    
     return color;
 }

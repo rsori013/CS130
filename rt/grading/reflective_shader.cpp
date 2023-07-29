@@ -1,3 +1,4 @@
+//Tri Tran & Rovin Soriano
 #include "reflective_shader.h"
 #include "parse.h"
 #include "ray.h"
@@ -38,3 +39,4 @@ vec3 Reflective_Shader::Shade_Surface(const Render_World& world, const Ray& ray,
 
     return result;
 }
+
