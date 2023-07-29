@@ -1,57 +1,62 @@
+// Tri Tran & Rovin Soriano
 #include <vector>
 #include <string>
 #include <iostream>
 #include "common.h"
 
-void Rasterize(Pixel* pixels, int width, int height, const std::vector<Triangle>& tris)
-{
-    // 2d z-buffer array
+void Rasterize(Pixel* pixels, int width, int height, const std::vector<Triangle>& tris) {
+    // Initialize Z-buffer making it 2D 
     double zBuffer[width][height];
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
-            zBuffer[i][j] = 1;
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            zBuffer[x][y] = 1.0; // intialized to 1.0
         }
     }
 
-    for (auto i : tris) {
-        //4d to 3d
-        vec3 X (i.A[0] / i.A[3], i.A[1] / i.A[3], i.A[2] / i.A[3]);
-        vec3 Y (i.B[0] / i.B[3], i.B[1] / i.B[3], i.B[2] / i.B[3]);
-        vec3 Z (i.C[0] / i.C[3], i.C[1] / i.C[3], i.C[2] / i.C[3]);
+    // Process each triangle
+    for (const auto& triangle : tris) {
+        // Convert from 4D to 3D doing the homogenous stuff 
+        vec3 vertA(triangle.A[0] / triangle.A[3], triangle.A[1] / triangle.A[3], triangle.A[2] / triangle.A[3]);
+        vec3 vertB(triangle.B[0] / triangle.B[3], triangle.B[1] / triangle.B[3], triangle.B[2] / triangle.B[3]);
+        vec3 vertC(triangle.C[0] / triangle.C[3], triangle.C[1] / triangle.C[3], triangle.C[2] / triangle.C[3]);
 
-        for (int j = 0; j < height; ++j) {
-            for (int k = 0; k < width; ++k) {
-                // barycentric coords
-                vec3 pix(((k + 0.5)/ (double)width) * 2 - 1, ((j + 0.5) / (double)height) * 2 - 1, 0.0);
-                vec3 vPvX = pix - X;
-                vec3 vYvX = Y - X;
-                vec3 vZvX = Z - X;
-                double alpha, beta, gamma;
-                double deno = vYvX[0] * vZvX[1] - vYvX[1] * vZvX[0];
-                beta = (vPvX[0] * vZvX[1] - vPvX[1] * vZvX[0]) / deno;
-                gamma = (vYvX[0] * vPvX[1] - vYvX[1] * vPvX[0]) / deno;
-                alpha = 1.0 - beta - gamma;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                // Calculate barycentric coordinates
+                vec3 pixelCoordinate(((col + 0.5) / static_cast<double>(width)) * 2 - 1, ((row + 0.5) / static_cast<double>(height)) * 2 - 1, 0.0);
+                vec3 deltaPA = pixelCoordinate - vertA;
+                vec3 deltaBA = vertB - vertA;
+                vec3 deltaCA = vertC - vertA;
 
-                if (!(alpha < 0 || beta < 0 || gamma < 0)) {
-                    // perspective correction
-                    double cv = alpha * X[2] + beta * Y[2] + gamma * Z[2];
-                    double corrected_alpha = alpha / (cv * i.A[3]);
-                    double corrected_beta = beta / (cv * i.B[3]);
-                    double corrected_gamma = gamma / (cv * i.C[3]);
-                    double cbary = corrected_alpha + corrected_beta + corrected_gamma;
-                    corrected_alpha /= cbary;
-                    corrected_beta /= cbary;
-                    corrected_gamma /= cbary;
-                    // assign color and update z-buffer
-                    vec3 color = corrected_alpha * i.Ca + corrected_beta * i.Cb + corrected_gamma * i.Cc;
-                    if (cv < zBuffer[k][j]) {
-                        zBuffer[k][j] = cv;
-                        set_pixel(pixels, width, height, k, j, color);
+                double denominator = deltaBA[0] * deltaCA[1] - deltaBA[1] * deltaCA[0];
+                double beta = (deltaPA[0] * deltaCA[1] - deltaPA[1] * deltaCA[0]) / denominator;
+                double gamma = (deltaBA[0] * deltaPA[1] - deltaBA[1] * deltaPA[0]) / denominator;
+                double alpha = 1.0 - beta - gamma;
+
+                // Check if inside the triangle
+                if (alpha >= 0 && beta >= 0 && gamma >= 0) {
+                    // Apply perspective correction
+                    double currentDepth = alpha * vertA[2] + beta * vertB[2] + gamma * vertC[2];
+                    double correctAlpha = alpha / (currentDepth * triangle.A[3]);
+                    double correctBeta = beta / (currentDepth * triangle.B[3]);
+                    double correctGamma = gamma / (currentDepth * triangle.C[3]);
+                    double baryTotal = correctAlpha + correctBeta + correctGamma;
+
+                    correctAlpha /= baryTotal;
+                    correctBeta /= baryTotal;
+                    correctGamma /= baryTotal;
+
+                    // Calculate interpolated color
+                    vec3 interpolatedColor = correctAlpha * triangle.Ca + correctBeta * triangle.Cb + correctGamma * triangle.Cc;
+
+                    // Update pixel color if the current depth is closer
+                    if (currentDepth < zBuffer[col][row]) {
+                        zBuffer[col][row] = currentDepth;
+                        set_pixel(pixels, width, height, col, row, interpolatedColor);
                     }
                 }
             }
         }
     }
 }
-
 

@@ -1,9 +1,11 @@
-//Tri Tran & Rovin Soriano
 #include "plane.h"
 #include "hit.h"
 #include "ray.h"
 #include <cfloat>
 #include <limits>
+
+// Student Name: [Shengkai Huang]
+// Student ID: [862231625]
 
 Plane::Plane(const Parse* parse,std::istream& in)
 {
@@ -11,29 +13,23 @@ Plane::Plane(const Parse* parse,std::istream& in)
     normal=normal.normalized();
 }
 
+// Intersect with the plane.  The plane's normal points outside.
 Hit Plane::Intersection(const Ray& ray, int part) const
 {
-    double denominator = dot(normal, ray.direction);
-
-    // If denominator is zero, ray is parallel to plane and does not intersect
-    if (denominator == 0)
-    {
-        return { -1, -1, {0, 0}}; // invalid hit
+    //TODO;
+    double t;
+    double descrim = dot(normal,ray.direction);
+    if (descrim != 0) {
+        t = (dot((x - ray.endpoint),normal))/ dot(normal,ray.direction);
+        if (t > small_t) {
+            return {t, part, {}};
+        }
+        else {
+            return {-1, part, {}};
+        }
     }
-
-    double t = dot(normal, (x - ray.endpoint)) / denominator;
-
-    // If t is negative, ray intersection is behind the ray origin
-    if (t < small_t)
-    {
-        return { -1, -1, {0, 0}}; // invalid hit
-    }
-
-    return { t, -1, {0, 0}}; // valid hit
+    return {-1, part, {}};
 }
-
-
-
 
 vec3 Plane::Normal(const Ray& ray, const Hit& hit) const
 {
