@@ -1,39 +1,80 @@
+// #include "parse.h"
+// #include "texture.h"
+// #include "dump_png.h"
+// #include <algorithm>
+// #include <iostream>
+// #include <cstdlib>  // For rand()
+// #include <cmath>  // For floor and ceil functions
+
+// Texture::Texture(const Parse* parse, std::istream& in)
+// {
+//     std::string filename;
+//     in >> name >> filename >> use_bilinear_interpolation;
+    
+//     Read_png(data, width, height, filename.c_str());
+
+//     // Debugging code
+//     std::cout << "Reading file: " << filename << std::endl;
+//     if(!data)
+//     {
+//         std::cerr << "Failed to load image data." << std::endl;
+//     }
+//     else
+//     {
+//         std::cout << "Image dimensions: " << width << "x" << height << std::endl;
+//         std::cout << "First few pixel values after reading PNG:" << std::endl;
+//         // for(int k = 0; k < 1500 && k < width * height; k++)
+//         // {
+//         //     std::cout << From_Pixel(data[k]) << std::endl;
+//         // }
+//         std::cout << From_Pixel(data[250000]);
+//     }
+// }
 
 
 
+// Texture::~Texture()
+// {
+//     delete [] data;
+// }
 
+// vec3 Texture::Get_Color(const vec2& uv) const {
+//     // 1. Check UV bounds.
+//     if (uv[0] < 0 || uv[0] > 1 || uv[1] < 0 || uv[1] > 1) {
+//         Pixel_Print("Warning: Out of bounds UV coordinates: ", uv[0], ", ", uv[1]);
+//         return vec3(1, 0, 0);  // Return bright red for any out-of-bounds UVs for easy spotting.
+//     }
+
+//     // 2. Convert UV to texture coordinates.
+//     int i = uv[0] * width;
+//     int j = uv[1] * height;
+
+//     // 3. Wrap coordinates if necessary.
+//     int wrappedI = wrap(i, width);
+//     int wrappedJ = wrap(j, height);
+//     if (i != wrappedI || j != wrappedJ) {
+//         Pixel_Print("Info: Wrapped UV coordinates from ", i, ", ", j, " to ", wrappedI, ", ", wrappedJ);
+//     }
+
+//     // 4. Fetch the pixel.
+//     Pixel pixelValue = data[wrappedJ * width + wrappedI];
+//     vec3 colorFromPixel = From_Pixel(pixelValue);
+    
+//     // 5. Debug print.
+//     Pixel_Print("UV: ", uv[0], ", ", uv[1], " Coords: ", wrappedI, ", ", wrappedJ, " Color: ", colorFromPixel[0], ", ", colorFromPixel[1], ", ", colorFromPixel[2]);
+
+//     return colorFromPixel;
+// }
 
 #include "parse.h"
 #include "texture.h"
 #include "dump_png.h"
-#include <algorithm>
-#include <iostream>
-#include <cstdlib>  // For rand()
-#include <cmath>  // For floor and ceil functions
 
-Texture::Texture(const Parse* parse, std::istream& in)
+Texture::Texture(const Parse* parse,std::istream& in)
 {
     std::string filename;
-    in >> name >> filename >> use_bilinear_interpolation;
-    
-    Read_png(data, width, height, filename.c_str());
-
-    // Debugging code
-    std::cout << "Reading file: " << filename << std::endl;
-    if(!data)
-    {
-        std::cerr << "Failed to load image data." << std::endl;
-    }
-    else
-    {
-        std::cout << "Image dimensions: " << width << "x" << height << std::endl;
-        std::cout << "First few pixel values after reading PNG:" << std::endl;
-        // for(int k = 0; k < 1500 && k < width * height; k++)
-        // {
-        //     std::cout << From_Pixel(data[k]) << std::endl;
-        // }
-        std::cout << From_Pixel(data[250000]);
-    }
+    in>>name>>filename>>use_bilinear_interpolation;
+    Read_png(data,width,height,filename.c_str());
 }
 
 Texture::~Texture()
@@ -68,50 +109,21 @@ Texture::~Texture()
 //    of course you are welcome to do so if you like.  You may assume nearest
 //    neighbor interpolation.
 
-
-// vec3 Texture::Get_Color(const vec2& uv) const
-// {
-//     // Check if UVs are out of bounds
-//     if(uv[0] < 0.0 || uv[0] > 1.0 || uv[1] < 0.0 || uv[1] > 1.0)
-//     {
-//         std::cerr << "Warning: Out-of-bounds UV: " << uv[0] << ", " << uv[1] << std::endl;
-//         return {1,0,1};  // return magenta for any out-of-bounds UVs
-//     }
-
-//     // Normalize UVs to ensure they are within [0, 1] range. 
-//     vec2 normalized_uv;
-//     normalized_uv[0] = uv[0] - std::floor(uv[0]);
-//     normalized_uv[1] = uv[1] - std::floor(uv[1]);
-
-//     // Convert the UVs into pixel-space
-//     float u_pixelSpace = normalized_uv[0] * width;
-//     float v_pixelSpace = normalized_uv[1] * height;
-
-//     // Using floor function for rounding to get the nearest pixel value
-//     int u_index = wrap(static_cast<int>(std::floor(u_pixelSpace)), width);
-//     int v_index = wrap(static_cast<int>(std::floor(v_pixelSpace)), height);
-
-//     int pixel_index = v_index * width + u_index;
-
-//     if (pixel_index >= 0 && pixel_index < width * height)
-//     {
-//         vec3 color = From_Pixel(data[pixel_index]);
-//         return color;
-//     }
-
-//     std::cerr << "Error: Invalid pixel index " << pixel_index << std::endl;
-//     return {0,0,0};  // return black for any invalid pixel indices
-// }
 vec3 Texture::Get_Color(const vec2& uv) const
 {
-    // For debugging: 
-    if(uv[0] < 0.0 || uv[0] > 1.0 || uv[1] < 0.0 || uv[1] > 1.0)
-    {
-        return {1.0, 0.0, 0.0};  // Return red if UVs are out of bounds
-    }
+    // Calculate the pixel indices (i, j) from texture coordinates (uv)
+    int i = (int)(std::floor(wrap(uv[0], 1.0f) * width));
+    int j = (int)(std::floor(wrap(uv[1], 1.0f) * height));
 
-    // Return UVs as colors otherwise
-    return {uv[0], uv[1], 0.0};
+    // Ensure the pixel indices are within bounds
+    i = std::max(0, std::min(i, width - 1));
+    j = std::max(0, std::min(j, height - 1));
+
+    // Calculate the color at the pixel indices
+    int index = j * width + i;
+    Pixel pixelColor = data[index];
+    vec3 color = From_Pixel(pixelColor);
+
+    return color;
 }
-
 
