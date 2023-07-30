@@ -1,3 +1,4 @@
+//Tri Tran & Rovin Soriano
 #include "transparent_shader.h"
 #include "parse.h"
 #include "ray.h"

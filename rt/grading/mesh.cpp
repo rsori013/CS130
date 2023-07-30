@@ -17,8 +17,6 @@ Mesh::Mesh(const Parse* parse, std::istream& in)
     Read_Obj(file.c_str());
 }
 
-// Read in a mesh from an obj file.  Populates the bounding box and registers
-// one part per triangle (by setting number_parts).
 void Mesh::Read_Obj(const char* file)
 {
     std::ifstream fin(file);
@@ -62,40 +60,28 @@ void Mesh::Read_Obj(const char* file)
 }
 
 //Check for an intersection against the ray.  See the base class for details.
-// Hit Mesh::Intersection(const Ray& ray, int part) const
-// {
-//     TODO;
-//     return {};
-// }
 Hit Mesh::Intersection(const Ray& ray, int part) const
 {
-    Hit min_hit;
-    min_hit.dist = std::numeric_limits<double>::max();
-    min_hit.triangle = -1;
+    Hit hit;
+    hit.dist = std::numeric_limits<double>::max();
+    hit.triangle = -1;
     for (size_t i = 0; i < triangles.size(); i++)
     {
-        Hit hit = Intersect_Triangle(ray, i);
-        if (hit.dist > small_t && hit.dist < min_hit.dist)
+        Hit hit2 = Intersect_Triangle(ray, i);
+        if (hit2.dist > small_t && hit2.dist < hit.dist)
         {
-            min_hit = hit;
-            min_hit.triangle = i;
+            hit = hit2;
+            hit.triangle = i;
         }
     }
-    return min_hit;
+    return hit;
 }
 
 
 
 //Compute the normal direction for the triangle with index part.
-// vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
-// {
-//     assert(hit.triangle>=0);
-//     TODO;
-//     return vec3();
-// }
 vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
 {
-    assert(hit.triangle>=0);
     ivec3 triangle = triangles[hit.triangle];
     vec3 A = vertices[triangle[0]];
     vec3 B = vertices[triangle[1]];
@@ -119,71 +105,65 @@ vec3 Mesh::Normal(const Ray& ray, const Hit& hit) const
 // larger than -weight_tolerance.  The use of small_t avoid the self-shadowing
 // bug, and the use of weight_tolerance prevents rays from passing in between
 // two triangles.
-// Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
-// {
-//     TODO;
-//     return {};
-// }
-Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const
+Hit Mesh::Intersect_Triangle(const Ray& ray, int tri) const //updated for texture Zzzz tired asf
 {
-    // Retrieve the triangle from the index.
-    ivec3 triangle = triangles[tri];
-
-    // Get the vertices of the triangle.
-    vec3 vertex0 = vertices[triangle[0]];
-    vec3 vertex1 = vertices[triangle[1]];
-    vec3 vertex2 = vertices[triangle[2]];
+    // Retrieve the triangle vertices.
+    vec3 vA = vertices[triangles[tri][0]];
+    vec3 vB = vertices[triangles[tri][1]];
+    vec3 vC = vertices[triangles[tri][2]];
 
     // Compute triangle edges.
-    vec3 edge1 = vertex1 - vertex0;
-    vec3 edge2 = vertex2 - vertex0;
+    vec3 vBvA = vB - vA;
+    vec3 vCvA = vC - vA;
+    
+    // Compute the triangle's normal.
+    vec3 normal = cross(vBvA, vCvA).normalized();
 
-    // Compute determinants.
-    vec3 h = cross(ray.direction, edge2);
-    double a = dot(edge1, h);
-
-    if (a > -weight_tolerance && a < weight_tolerance) 
+    // Check if the ray is parallel to the triangle.
+    if (abs(dot(ray.direction, normal)) < weight_tolerance)
     {
-        // Ray is parallel to the triangle.
-        return Hit();
+        return Hit(); // No intersection.
     }
 
-    double f = 1.0 / a;
-    vec3 s = ray.endpoint - vertex0;
-    double u = f * dot(s, h);
+    // Calculate the distance to the intersection point.
+    double dist = dot(normal, (vA - ray.endpoint)) / dot(normal, ray.direction);
+    vec3 intersection_point = ray.Point(dist);
 
-    if (u < 0.0 || u > 1.0)
+    // Calculate the barycentric coordinates.
+    double beta = dot(cross((intersection_point - vA), (vC - vA)), normal) / cross(vCvA, vBvA).magnitude();
+    double alpha = dot(cross((vB - intersection_point), (vC - intersection_point)), normal) / cross(vCvA, vBvA).magnitude();
+    double gamma = 1.0 - beta - alpha;
+
+    // Validate the intersection.
+    if (alpha >= 0.0 && beta >= 0.0 && gamma >= 0.0 && dist > small_t)
     {
-        // Intersection is outside of the triangle.
-        return Hit();
-    }
-
-    vec3 q = cross(s, edge1);
-    double v = f * dot(ray.direction, q);
-
-    if (v < 0.0 || u + v > 1.0)
-    {
-        // Intersection is outside of the triangle.
-        return Hit();
-    }
-
-    // Compute the distance from the ray origin to the intersection point.
-    double t = f * dot(edge2, q);
-
-    if (t > small_t) // Ray intersection.
-    {
-        // Initialize the Hit object.
         Hit hit;
-        hit.dist = t;
+        hit.dist = dist;
         hit.triangle = tri;
-        hit.uv = vec2(u, v);
+
+        // Ensure the triangle has texture coordinates.
+        if (tri < triangle_texture_index.size() &&
+            triangle_texture_index[tri][0] < uvs.size() &&
+            triangle_texture_index[tri][1] < uvs.size() &&
+            triangle_texture_index[tri][2] < uvs.size())
+        {
+            // Interpolate the texture coordinates using barycentric coordinates.
+            hit.uv = alpha * uvs[triangle_texture_index[tri][0]] + 
+                     beta * uvs[triangle_texture_index[tri][1]] + 
+                     gamma * uvs[triangle_texture_index[tri][2]];
+        }
+        else
+        {
+            // If no texture coordinates, use the computed (alpha, beta) directly.
+            hit.uv = vec2(alpha, beta);
+        }
+
         return hit;
     }
-    else // No intersection.
-    {
-        return Hit();
-    }
+
+    return Hit(); // No intersection.
 }
+
 
 
 std::pair<Box,bool> Mesh::Bounding_Box(int part) const
